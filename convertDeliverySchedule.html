@@ -39,7 +39,6 @@
 }
 
 function convertSchedule(text) {
-    
             var lines = text.split("\n");
             var headerline = lines[0] + lines[1];
             var headers = headerline.split("\t");
@@ -53,6 +52,7 @@ function convertSchedule(text) {
                 var entry = {
                     postcode: row[1],
                     suburb: row[2],
+                    turn: row[6],       // turn around time in business days
                     cutoff: row[7],
                     day: row[8],
                     frequency: row[9]
