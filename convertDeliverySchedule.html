@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            textarea {
+                width: 100%;
+                height: 20em;
+            }
+            </style>
+    </head>
+    <body>
+        <p>Paste the delivery schedule as tab separated lines</p>
+        <form>
+            <!--<textarea name="schedule"></textarea>-->
+            <textarea name="json"></textarea>
+            <input type="button" value="submit"/>
+        </form>
+        <script>
+            readTextFile("schedule.txt");
+            function readTextFile(file)
+{
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    rawFile.onreadystatechange = function ()
+    {
+        if(rawFile.readyState === 4)
+        {
+            if(rawFile.status === 200 || rawFile.status === 0)
+            {
+                var allText = rawFile.responseText;
+                convertSchedule(allText);
+            }
+        }
+    };
+    rawFile.send(null);
+}
+
+function convertSchedule(text) {
+    
+            var lines = text.split("\n");
+            var headerline = lines[0] + lines[1];
+            var headers = headerline.split("\t");
+            console.log(headers);
+            var zones = [];
+            for (var i = 2; i < lines.length; i++) {
+                var row = lines[i].split("\t");
+                if (row[0] !== 'CHECKED') {
+                    continue;
+                }
+                var entry = {
+                    postcode: row[1],
+                    suburb: row[2],
+                    cutoff: row[7],
+                    day: row[8],
+                    frequency: row[9]
+                };
+                zones.push(entry);
+            }
+            var json = JSON.stringify(zones);
+            document.querySelector('[name="json"]').value = json;
+}
+        </script>
+    </body>
+</html>
