@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Delivery zone checker</title>
+        <title>Check your delivery days</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <h2>Delivery zone checker prototype</h2>
+        <h2>Check your delivery days</h2>
         <form>
             <input type="text" name="query" placeholder="Suburb or postcode" required autofocus/>
             <input type="submit" value="Search"/>
@@ -27,6 +27,7 @@
         </div>
         </script>
         <script>
+            (function () {
             function storeZone(zone) {
                 store(zone, zone.postcode);
                 store(zone, zone.suburb);
@@ -123,6 +124,7 @@
             form.onsubmit = searchAndDisplay;
             queryElem.oninput = searchAndDisplay;
             searchAndDisplay();
+        }());
         </script>
     </body>
 </html>
