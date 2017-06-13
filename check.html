@@ -7,8 +7,13 @@
     <div style="margin: 1em;">
     <h4>{{ suburb }} {{ postcode }}</h4>
     <div>
-    {{ frequency }} delivery: {{ day }}<br />
-    The cutoff is at {{ cutoff }}{{ cutoffday }}.
+    {{ frequency }} delivery: {{ day }}
+    </div>
+    <div>
+    Next delivery: {{ deliverydate }}
+    </div>
+    <div>
+    Order by:  {{ cutoffdate }} ({{ cutofftime }})
     </div>
     </div>
 </script>
@@ -62,7 +67,10 @@
             resultsElem.innerHTML = html;// + JSON.stringify(results);
         }
         function renderResult(template, result) {
-            nextDelivery(result);
+            var delivery = nextDelivery(result);
+            result.deliverydate = delivery.deliveryDate.toDateString();
+            result.cutoffdate = delivery.cutoffDate.toDateString();
+            result.cutofftime = delivery.cutoffTime;
             if (result.turn >= 1 && dayNums.hasOwnProperty(result.day)) {
                 var dayNum = dayNums[result.day];
                 var cutoffDay = 5 + +dayNum - +result.turn;
@@ -84,9 +92,6 @@
             });
         }
         function nextDelivery(zone) {
-            var turn = zone.turn;
-            var cutoff = zone.cutoff;
-            var day = zone.day;
             var freq = zone.frequency;
             var today = new Date();
             if (freq === 'Daily (business days)') {
@@ -96,23 +101,9 @@
                 return nextWeeklyDelivery(today, zone);
             }
             if (freq === 'Fortnightly') {
-                console.log(zone);
-                var deliveryDay = dayNums[zone.day];
-                console.log(deliveryDay);
-                var cutoffDaysPrior = +zone.turn;
-                console.log(cutoffDaysPrior);
-                var cutoffDay = pairedBusinessDay(deliveryDay, -cutoffDaysPrior);
-                console.log(cutoffDay);
-                var cutoffDate = nextDayFrom(today, cutoffDay + 1);
-                console.log(cutoffDate);
-                var deliveryDate = addBusinessDays(cutoffDate, cutoffDaysPrior);
-                console.log(deliveryDate);
-                return {
-                    cutoffTime: 'midday',
-                    cutoffDate: cutoffDate,
-                    deliveryDate: deliveryDate
-                };
+                return nextFortnightlyDelivery(today, zone);
             }
+            console.log("Error: unknown frequency: " + freq);
             return {
                 cutoffTime: '',
                 cutoffDate: '',
@@ -125,18 +116,39 @@
                 start = addDays(start, 1);
             }
             var cutoffDate = nextBusinessDate(start);
-            var deliveryDate;
-            // With cutoff on Saturday, advance to Monday delivery
-            if (cutoffDate.getDay() === 6) {
-                deliveryDate = addDays(cutoffDate, 2);
-            } else {
-                deliveryDate = addDays(cutoffDate, 1);
-            }
+            var deliveryDate = addDays(cutoffDate, 1);
             return {
                 cutoffTime: 'midday',
                 cutoffDate: cutoffDate,
                 deliveryDate: deliveryDate
             };
+        }
+        function nextWeeklyDelivery(start, zone) {
+            var cutoffDaysPrior = +zone.turn + 1;
+            var deliveryDays = parseDays(zone.day);
+            var deliveryStart = addBusinessDays(start, cutoffDaysPrior);
+            var deliveryDate = advanceToDay(deliveryStart, deliveryDays);
+            var cutoffDate = addBusinessDays(deliveryDate, -cutoffDaysPrior);
+            return {
+                cutoffTime: 'midnight',
+                cutoffDate: cutoffDate,
+                deliveryDate: deliveryDate
+            };
+
+        }
+        function nextFortnightlyDelivery(start, zone) {
+            console.log(zone);
+            var cutoffDaysPrior = +zone.turn + 1;
+            var deliveryDays = parseDays(zone.day);
+            var deliveryStart = addBusinessDays(start, cutoffDaysPrior);
+            var deliveryDate = advanceToDay(deliveryStart, deliveryDays);
+            var cutoffDate = addBusinessDays(deliveryDate, -cutoffDaysPrior);
+            return {
+                cutoffTime: 'midnight',
+                cutoffDate: cutoffDate,
+                deliveryDate: deliveryDate
+            };
+
         }
         function nextBusinessDate(start) {
             var startDay = start.getDay();
@@ -151,19 +163,6 @@
                 return 2;
             }
             return 0;
-        }
-        function nextWeeklyDelivery(start, zone) {
-            var cutoffDaysPrior = +zone.turn + 1;
-            var deliveryDays = parseDays(zone.day);
-            var deliveryStart = addBusinessDays(start, cutoffDaysPrior);
-            var deliveryDate = advanceToDay(deliveryStart, deliveryDays);
-            var cutoffDate = addBusinessDays(deliveryDate, -cutoffDaysPrior);
-            return {
-                cutoffTime: 'midday',
-                cutoffDate: cutoffDate,
-                deliveryDate: deliveryDate
-            };
-
         }
         function parseDays(string) {
             var names;
