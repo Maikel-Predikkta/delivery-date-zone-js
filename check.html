@@ -137,11 +137,10 @@
 
         }
         function nextFortnightlyDelivery(start, zone) {
-            console.log(zone);
             var cutoffDaysPrior = +zone.turn + 1;
             var deliveryDays = parseDays(zone.day);
             var deliveryStart = addBusinessDays(start, cutoffDaysPrior);
-            var deliveryDate = advanceToDay(deliveryStart, deliveryDays);
+            var deliveryDate = advanceToDayInFortnight(deliveryStart, deliveryDays, zone.deliveryDate);
             var cutoffDate = addBusinessDays(deliveryDate, -cutoffDaysPrior);
             return {
                 cutoffTime: 'midnight',
@@ -177,16 +176,6 @@
         }
         function parseDay(dayName) {
             return dayNums[dayName.substr(0, 3)];
-        }
-        function nextDeliveryDays(start) {
-            return nextWeekFrom(start).filter(isDeliveryDay);
-        }
-        function nextWeekFrom(start) {
-            var week = [start];
-            for (var i = 1; i < 7; i++) {
-                week.push(addDays(start, i));
-            }
-            return week;
         }
         function addDays(date, days) {
             var newDate = new Date(date);
@@ -234,35 +223,25 @@
             }
             return soonestDate;
         }
-        function nextDayFrom(startDate, dayOfWeek) {
-            var startDay = startDate.getDay();
-            if (dayOfWeek === startDay) {
-                return startDate;
+        function advanceToDayInFortnight(startDate, deliveryDays, referenceDateString) {
+            var nextDate = advanceToDay(startDate, deliveryDays);
+            var dayMonthYear = referenceDateString.split('/').map(Number);
+            var refMonth = dayMonthYear[1] - 1;
+            var refDate = new Date(dayMonthYear[2], refMonth, dayMonthYear[0]);
+            if (isInFortnightlyInterval(nextDate, refDate)) {
+                return nextDate;
             }
-            if (dayOfWeek > startDay) {
-                return addDays(startDate, dayOfWeek - startDay);
-            }
-            return addDays(startDate, dayOfWeek - startDay + 7);
-
+            return addDays(nextDate, 7);
         }
-        /**
-         * Returns the business day corresponding to another business day after
-         * adding a number of business days.
-         *
-         * @param {int} dayOfWeek business day in the range [0-4]
-         * @param {int} numberOfDays number of business days
-         * @returns {int} corresponding business day in the range [0-4]
-         */
-        function pairedBusinessDay(dayOfWeek, numberOfDays) {
-            if (dayOfWeek < 0 || dayOfWeek > 4) {
-                throw "Not a business day: " + dayOfWeek;
-            }
-            return (5 + +dayOfWeek + (+numberOfDays % 5)) % 5;
+        function daysBetween(date1, date2) {
+            var a = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+            var b = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+            var diff = b - a;
+            return diff / 1000 / 60 / 60 / 24;
         }
-        // Delivery Monday - Saturday [1..6]
-        function isDeliveryDay(obj) {
-            var day = obj.getDay();
-            return day > 0;
+        function isInFortnightlyInterval(date, referenceDate) {
+            var days = daysBetween(date, referenceDate);
+            return (days % 14) === 0;
         }
         function searchAndDisplay() {
             var query = queryElem.value;
@@ -312,7 +291,7 @@
             "Saturday"
         ];
         var lookup = {};
-        getJson('https://cdn.shopify.com/s/files/1/1869/3543/t/1/assets/schedule.json?15269781618451710288', fillLookupTable);
+        getJson('https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366', fillLookupTable);
         var form = document.querySelector('form.delivery-zone-checker');
         var queryElem = form.querySelector('input[name="query"]');
         form.onsubmit = searchAndDisplay;
@@ -326,9 +305,9 @@
                 console.log(result);
             }
         }
-        
+
         var result;
-        
+
         result = parseDays('Friday');
         assertEquals(result[0], 5);
         result = parseDays('Tues/ Thurs');
@@ -344,12 +323,14 @@
         assertEquals(result[0], 2);
         result = parseDays('Saturday');
         assertEquals(result[0], 6);
-        
+
         var mondayMorning = new Date('Mon, 12 Jun 2017 10:00:00');
         var mondayAfternoon = new Date('Mon, 12 Jun 2017 14:00:00');
         var fridayMorning = new Date('Fri, 16 Jun 2017 10:00:00');
         var saturdayMorning = new Date('Sat, 17 Jun 2017 10:00:00');
         var castlemaine = {turn: "3", day: "Wednesday"};
+        var bundanoon = {turn: "5", deliveryDate: "28/06/2017", day: "Wednesday"};
+        var mannum = {turn: "6", deliveryDate: "01/07/2017", day: "Saturday"};
 
         result = addBusinessDays(mondayMorning, 0);
         assertEquals(result.toDateString(), 'Mon Jun 12 2017');
@@ -361,14 +342,16 @@
         assertEquals(result.toDateString(), 'Mon Jun 19 2017');
         result = addBusinessDays(mondayMorning, 11);
         assertEquals(result.toDateString(), 'Tue Jun 27 2017');
-        
+
         result = addBusinessDays(mondayMorning, -1);
         assertEquals(result.toDateString(), 'Fri Jun 09 2017');
         result = addBusinessDays(mondayMorning, -6);
         assertEquals(result.toDateString(), 'Fri Jun 02 2017');
         result = addBusinessDays(saturdayMorning, -1);
         assertEquals(result.toDateString(), 'Fri Jun 16 2017');
-        
+        result = addBusinessDays(saturdayMorning, -7);
+        assertEquals(result.toDateString(), 'Thu Jun 08 2017');
+
         result = advanceToDay(mondayMorning, [1]);
         assertEquals(result.toDateString(), 'Mon Jun 12 2017');
         result = advanceToDay(mondayMorning, [2]);
@@ -377,7 +360,7 @@
         assertEquals(result.toDateString(), 'Tue Jun 20 2017');
         result = advanceToDay(fridayMorning, [2, 6, 4]);
         assertEquals(result.toDateString(), 'Sat Jun 17 2017');
-        
+
         result = nextDailyDelivery(mondayMorning);
         assertEquals(result.deliveryDate.toDateString(), 'Tue Jun 13 2017');
         result = nextDailyDelivery(mondayAfternoon);
@@ -387,8 +370,31 @@
         result = nextDailyDelivery(saturdayMorning);
         assertEquals(result.deliveryDate.toDateString(), 'Tue Jun 20 2017');
 
-//        result = nextWeeklyDelivery(mondayMorning, castlemaine);
-//        assertEquals(result.cutoffDate.toDateString(), 'Thu Jun 15 2017');
-//        assertEquals(result.deliveryDate.toDateString(), 'Wed Jun 21 2017');
+        result = nextWeeklyDelivery(mondayMorning, castlemaine);
+        assertEquals(result.cutoffDate.toDateString(), 'Thu Jun 15 2017');
+        assertEquals(result.deliveryDate.toDateString(), 'Wed Jun 21 2017');
+
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, 14));
+        assertEquals(result, true);
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, -14));
+        assertEquals(result, true);
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, -28));
+        assertEquals(result, true);
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, 28));
+        assertEquals(result, true);
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, 7));
+        assertEquals(result, false);
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, -7));
+        assertEquals(result, false);
+        result = isInFortnightlyInterval(mondayMorning, addDays(mondayMorning, 21));
+        assertEquals(result, false);
+
+        result = nextFortnightlyDelivery(mondayMorning, bundanoon);
+        assertEquals(result.cutoffDate.toDateString(), 'Tue Jun 20 2017');
+        assertEquals(result.deliveryDate.toDateString(), 'Wed Jun 28 2017');
+
+        result = nextFortnightlyDelivery(mondayMorning, mannum);
+        assertEquals(result.cutoffDate.toDateString(), 'Thu Jun 22 2017');
+        assertEquals(result.deliveryDate.toDateString(), 'Sat Jul 01 2017');
     }());
 </script>

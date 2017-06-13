@@ -24,6 +24,7 @@
 {
     var rawFile = new XMLHttpRequest();
     rawFile.open("GET", file, false);
+    rawFile.overrideMimeType("text/plain");
     rawFile.onreadystatechange = function ()
     {
         if(rawFile.readyState === 4)
@@ -46,17 +47,21 @@ function convertSchedule(text) {
             var zones = [];
             for (var i = 2; i < lines.length; i++) {
                 var row = lines[i].split("\t");
-                if (row[0] !== 'CHECKED') {
+                if (row.length !== 13) {
                     continue;
                 }
                 var entry = {
                     postcode: row[1],
                     suburb: row[2],
-                    turn: row[6],       // turn around time in business days
-                    cutoff: row[7],
-                    day: row[8],
-                    frequency: row[9]
+                    // whole business days between cutoff and delivery
+                    turn: row[6],
+//                    cutoff: row[7],
+                    deliveryDate: row[9],
+                    day: row[10],
+                    frequency: row[11]
                 };
+//                console.log(entry);
+//                return;
                 zones.push(entry);
             }
             var json = JSON.stringify(zones);
