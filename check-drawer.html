@@ -122,7 +122,6 @@
             }
             var elem = createFromTemplate(template, result);
             var deliveryDates = delivery.deliveryDates || [delivery.deliveryDate];
-            console.log(deliveryDates);
             var dateMap = {};
             for (var i = 0; i < deliveryDates.length; i++) {
                 dateMap[deliveryDates[i].toDateString()] = true;
@@ -194,7 +193,8 @@
             return {
                 cutoffTime: 'midnight',
                 cutoffDate: cutoffDate,
-                deliveryDate: deliveryDate
+                deliveryDate: deliveryDate,
+                deliveryDates: nextDates(deliveryDate, 6, deliveryDays)
             };
 
         }
@@ -204,10 +204,16 @@
             var deliveryStart = addBusinessDays(start, cutoffDaysPrior);
             var deliveryDate = advanceToDayInFortnight(deliveryStart, deliveryDays, zone.deliveryDate);
             var cutoffDate = addBusinessDays(deliveryDate, -cutoffDaysPrior);
+            var deliveryDates = [
+                deliveryDate,
+                addDays(deliveryDate, 14),
+                addDays(deliveryDate, 28)
+            ];
             return {
                 cutoffTime: 'midnight',
                 cutoffDate: cutoffDate,
-                deliveryDate: deliveryDate
+                deliveryDate: deliveryDate,
+                deliveryDates: deliveryDates
             };
 
         }
