@@ -22,7 +22,7 @@
     <div class="delivery-zone-wrapper">
         <div class="results"></div>
     </div>
-    <input required class="required" id="delivery-date" type="text" name="attributes[Delivery date]" style="display: none">
+    <input required class="required" id="delivery-date" type="text" name="attributes[Delivery date]" style="display: none; display: initial">
     <div class="delivery-datepicker"></div>
 </div>
 <script id="zone-result-template" type="text/template">
@@ -71,13 +71,19 @@
             var template = document.getElementById('zone-noresult-template').textContent;
             resultsElem.innerHTML = template.replace('{ query }', query);
         }
-        if (results.length > 0) {
-            var template = document.getElementById('zone-result-template').textContent;
+        if (results.length === 1) {
+            var delivery = nextDelivery(results[0]);
+            selectDestination(delivery);
+        }
+        var datalist = [];
+        if (results.length > 1) {
             for (var i = 0; i < results.length; i++) {
-                var resultElem = renderResult(template, results[i]);
-                resultsElem.appendChild(resultElem);
+                var result = results[i];
+                var name = result.suburb + ' ' + result.postcode;
+                datalist.push(name);
             }
         }
+        $(queryElem).autocomplete('option', 'source', datalist);
     }
     function renderResult(template, result) {
         var delivery = nextDelivery(result);
@@ -93,9 +99,6 @@
             result.cutoffday = "";
         }
         var elem = createFromTemplate(template, result);
-        elem.querySelector('h4').onclick = function () {
-            selectDestination(delivery);
-        };
         return elem;
     }
     function selectDestination(delivery) {
@@ -111,6 +114,7 @@
             }
             return [false, '', ''];
         });
+        $('.delivery-datepicker').show();
     }
     function createFromTemplate(template, result) {
         var parent = document.createElement('div');
@@ -359,14 +363,19 @@
     form.onsubmit = searchAndDisplay;
     queryElem.oninput = searchAndDisplay;
     $(function () {
+        var defaultDate = $('input[name="attributes[Delivery date]"]').val();
         $('.delivery-datepicker').datepicker({
             altField: 'input[name="attributes[Delivery date]"]',
-            minDate: new Date(),
+            dateFormat: 'D, d M y',
+            defaultDate: defaultDate,
             beforeShowDay: function () {
                 return [false, '', 'Please select a destination first.'];
             }
         });
+        $('.delivery-datepicker').hide();
+        $('input[name="attributes[Delivery date]"]').val(defaultDate);
     });
+    $(queryElem).autocomplete({source: ['test']});
     // testing
     function assertEquals(result, expected) {
         if (result !== expected) {
