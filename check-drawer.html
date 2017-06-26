@@ -20,16 +20,29 @@
         FREE SHIPPING ON ORDERS OVER $99 - CHECK YOUR DELIVERY AREA
     </a>
 </div>
-<div class="delivery-zone-checker">
-    <form class="delivery-zone-checker">
-        <input type="text" name="query" placeholder="Suburb or postcode" required autofocus/>
-        <input type="submit" value="Search"/>
-    </form>
-    <div class="results"></div>
+<div class="delivery-zone-checker page-width">
+    <a class="closeChecker">
+        <svg aria-hidden="true" focusable="false" role="presentation" class="icon icon-close" viewBox="0 0 37 40"><path d="M21.3 23l11-11c.8-.8.8-2 0-2.8-.8-.8-2-.8-2.8 0l-11 11-11-11c-.8-.8-2-.8-2.8 0-.8.8-.8 2 0 2.8l11 11-11 11c-.8.8-.8 2 0 2.8.4.4.9.6 1.4.6s1-.2 1.4-.6l11-11 11 11c.4.4.9.6 1.4.6s1-.2 1.4-.6c.8-.8.8-2 0-2.8l-11-11z" style="fill: #e34035;"></path></svg>
+    </a>
+
+    <div class="form-wrapper">
+        <form class="delivery-zone-checker">
+            <input type="text" name="query" placeholder="Suburb or postcode" required autofocus/>
+            <input type="submit" value="Search"/>
+        </form>
+    </div>
+
+    <div class="delivery-zone-wrapper">
+        <div class="results"></div>
+    </div>
 </div>
 <script>
     var link = document.querySelector('a[href="#delivery-zone-checker"]');
-    link.onclick = function () {
+    var closeChecker = document.querySelector('.closeChecker');
+
+
+    // TODO combine these two functions
+    link.onclick = function() {
         var openDrawer = document.querySelector('.open-drawer');
         var closedDrawer = document.querySelector('.closed-drawer');
         if (openDrawer) {
@@ -40,8 +53,16 @@
         }
         return false;
     };
+    closeChecker.onclick = function() {
+        var openDrawer = document.querySelector('.open-drawer');
+        var closedDrawer = document.querySelector('.closed-drawer');
+        if (openDrawer) {
+            openDrawer.className = openDrawer.className.replace('open-drawer', 'closed-drawer');
+        }
+        return false;
+    };
     var checker = document.querySelector('div.delivery-zone-checker');
-//    checker.className += ' closed-drawer';
+    checker.className += ' closed-drawer';
 </script>
 <script id="zone-result-template" type="text/template">
     <div style="margin: 1em;">
