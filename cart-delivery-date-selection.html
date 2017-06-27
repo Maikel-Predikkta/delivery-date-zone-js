@@ -15,11 +15,6 @@
     <input required class="required" id="delivery-date" type="text" name="attributes[Delivery date]" style="display: none; display: initial">
     <div class="delivery-datepicker"></div>
 </div>
-<script id="zone-result-template" type="text/template">
-    <div style="margin: 1em;">
-    <h4>{ suburb } { postcode }</h4>
-    </div>
-</script>
 <script id="zone-noresult-template" type="text/template">
     <div style="margin: 1em;">
     <h4>Sorry, we don't deliver to "{ query }".</h4>
@@ -74,22 +69,6 @@
             }
         }
         $(queryElem).autocomplete('option', 'source', datalist);
-    }
-    function renderResult(template, result) {
-        var delivery = nextDelivery(result);
-        result.deliverydate = delivery.deliveryDate.toDateString();
-        result.cutoffdate = delivery.cutoffDate.toDateString();
-        result.cutofftime = delivery.cutoffTime;
-        if (result.turn >= 1 && dayNums.hasOwnProperty(result.day)) {
-            var dayNum = dayNums[result.day];
-            var cutoffDay = 5 + +dayNum - +result.turn;
-            var dayName = dayNames[cutoffDay];
-            result.cutoffday = " on " + dayName;
-        } else {
-            result.cutoffday = "";
-        }
-        var elem = createFromTemplate(template, result);
-        return elem;
     }
     function selectDestination(delivery) {
         var deliveryDates = delivery.deliveryDates || [delivery.deliveryDate];
@@ -365,7 +344,7 @@
         $('.delivery-datepicker').hide();
         $('input[name="attributes[Delivery date]"]').val(defaultDate);
     });
-    $(queryElem).autocomplete({source: ['test']});
+    $(queryElem).autocomplete({source: []});
     // testing
     function assertEquals(result, expected) {
         if (result !== expected) {
