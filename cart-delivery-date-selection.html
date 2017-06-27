@@ -1,19 +1,9 @@
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<style>
-    .delivery-checker-link {
-        margin: .5em;
-        text-align: center;
-    }
-    div.delivery-zone-checker {
-        width: 40em;
-        margin: 1em auto;
-    }
-</style>
-<div class="delivery-zone-checker page-width">
+<div class="delivery-date-selection">
     <div class="form-wrapper">
-        <form class="delivery-zone-checker">
+        <form class="delivery-date-selection">
             <input type="text" name="query" placeholder="Suburb or postcode" required autofocus/>
             <input type="submit" value="Search"/>
         </form>
@@ -358,7 +348,7 @@
     ];
     var lookup = {};
     getJson('https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366', fillLookupTable);
-    var form = document.querySelector('form.delivery-zone-checker');
+    var form = document.querySelector('form.delivery-date-selection');
     var queryElem = form.querySelector('input[name="query"]');
     form.onsubmit = searchAndDisplay;
     queryElem.oninput = searchAndDisplay;
