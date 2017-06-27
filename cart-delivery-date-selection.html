@@ -4,7 +4,7 @@
 <div class="delivery-date-selection">
     <div class="form-wrapper">
         <form class="delivery-date-selection">
-            <input type="text" name="query" placeholder="Suburb or postcode" required autofocus/>
+            <input type="text" name="attributes[Delivery zone]" placeholder="Suburb or postcode" required autofocus/>
             <input type="submit" value="Search"/>
         </form>
     </div>
@@ -25,6 +25,7 @@
     function storeZone(zone) {
         store(zone, zone.postcode);
         store(zone, zone.suburb);
+        store(zone, zone.suburb + zone.postcode);
         var sub = convertQuery(zone.suburb);
         for (var i = 4; i < sub.length; i++) {
             store(zone, sub.substring(0, i));
@@ -84,21 +85,6 @@
             return [false, '', ''];
         });
         $('.delivery-datepicker').show();
-    }
-    function createFromTemplate(template, result) {
-        var parent = document.createElement('div');
-        parent.innerHTML = renderTemplate(template, result);
-        return parent.children[0];
-    }
-    function renderTemplate(template, data) {
-        return template.replace(/{ ([a-z]+) }/g, function (match, key) {
-            if (typeof data[key] === 'undefined') {
-                console.log(match);
-                return match;
-            } else {
-                return data[key];
-            }
-        });
     }
     function nextDelivery(zone) {
         var freq = zone.frequency;
@@ -316,19 +302,10 @@
         "Fri": 5,
         "Sat": 6
     };
-    var dayNames = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
-    ];
     var lookup = {};
     getJson('https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366', fillLookupTable);
     var form = document.querySelector('form.delivery-date-selection');
-    var queryElem = form.querySelector('input[name="query"]');
+    var queryElem = form.querySelector('input[name="attributes[Delivery zone]"]');
     form.onsubmit = searchAndDisplay;
     queryElem.oninput = searchAndDisplay;
     $(function () {
