@@ -2,12 +2,7 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <div class="delivery-date-selection">
-    <div class="form-wrapper">
-        <form class="delivery-date-selection">
-            <input type="text" name="attributes[Delivery zone]" placeholder="Suburb or postcode" required autofocus/>
-            <input type="submit" value="Search"/>
-        </form>
-    </div>
+    <input type="text" name="attributes[Delivery zone]" placeholder="Suburb or postcode" required autofocus/>
 
     <div class="delivery-zone-wrapper">
         <div class="results"></div>
@@ -23,10 +18,10 @@
 <script>
 (function () {
     function storeZone(zone) {
+        var name = zone.suburb + zone.postcode;
         store(zone, zone.postcode);
-        store(zone, zone.suburb);
-        store(zone, zone.suburb + zone.postcode);
-        var sub = convertQuery(zone.suburb);
+        store(zone, name);
+        var sub = convertQuery(name);
         for (var i = 4; i < sub.length; i++) {
             store(zone, sub.substring(0, i));
         }
@@ -106,8 +101,8 @@
         };
     }
     function nextDailyDeliveries(start) {
-        // After midday, start search the following day
-        if (start.getHours() > 11) {
+        // After 10am, start search the following day
+        if (start.getHours() > 9) {
             start = addDays(start, 1);
         }
         var cutoffDate = nextBusinessDate(start);
@@ -277,6 +272,7 @@
         for (var i = 0; i < zones.length; i++) {
             storeZone(zones[i]);
         }
+        searchAndDisplay();
     }
     function getJson(url, callback) {
         var req = new XMLHttpRequest();
@@ -304,9 +300,7 @@
     };
     var lookup = {};
     getJson('https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366', fillLookupTable);
-    var form = document.querySelector('form.delivery-date-selection');
-    var queryElem = form.querySelector('input[name="attributes[Delivery zone]"]');
-    form.onsubmit = searchAndDisplay;
+    var queryElem = document.querySelector('input[name="attributes[Delivery zone]"]');
     queryElem.oninput = searchAndDisplay;
     $(function () {
         var defaultDate = $('input[name="attributes[Delivery date]"]').val();
@@ -321,7 +315,10 @@
         $('.delivery-datepicker').hide();
         $('input[name="attributes[Delivery date]"]').val(defaultDate);
     });
-    $(queryElem).autocomplete({source: []});
+    $(queryElem).autocomplete({
+        source: [],
+        select: searchAndDisplay
+    });
     // testing
     function assertEquals(result, expected) {
         if (result !== expected) {
@@ -433,5 +430,5 @@
     result = nextFortnightlyDelivery(mondayMorning, mannum);
     assertEquals(result.cutoffDate.toDateString(), 'Thu Jun 22 2017');
     assertEquals(result.deliveryDate.toDateString(), 'Sat Jul 01 2017');
-}());
+});
 </script>
