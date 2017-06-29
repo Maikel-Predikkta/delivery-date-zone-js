@@ -76,7 +76,12 @@
             var freq = zone.frequency;
             var today = new Date();
             if (freq === 'Daily (business days)') {
-                return nextDailyDeliveries(today);
+                var deliveryDays = [1, 2, 3, 4, 5];
+                return nextDailyDeliveries(today, deliveryDays);
+            }
+            if (freq === 'Daily (business days + Saturday)') {
+                var deliveryDays = [1, 2, 3, 4, 5, 6];
+                return nextDailyDeliveries(today, deliveryDays);
             }
             if (freq === 'Weekly') {
                 return nextWeeklyDelivery(today, zone);
@@ -91,18 +96,19 @@
                 deliveryDate: ''
             };
         }
-        function nextDailyDeliveries(start) {
+        function nextDailyDeliveries(start, deliveryDays) {
             // After 10am, start search the following day
             if (start.getHours() > 9) {
                 start = addDays(start, 1);
             }
             var cutoffDate = nextBusinessDate(start);
-            var deliveryDate = addDays(cutoffDate, 1);
+            var deliveryDateStart = addDays(cutoffDate, 1);
+            var deliveryDates = nextDates(deliveryDateStart, 12, deliveryDays)
             return {
-                cutoffTime: 'midday',
+                cutoffTime: '10am',
                 cutoffDate: cutoffDate,
-                deliveryDate: deliveryDate,
-                deliveryDates: nextDates(deliveryDate, 12, [1, 2, 3, 4, 5, 6])
+                deliveryDate: deliveryDates[0],
+                deliveryDates: deliveryDates
             };
         }
         function nextWeeklyDelivery(start, zone) {
@@ -393,13 +399,13 @@
         assertEquals(result[0].toDateString(), 'Sat Jun 17 2017');
         assertEquals(result[1].toDateString(), 'Mon Jun 19 2017');
 
-        result = nextDailyDeliveries(mondayMorning);
+        result = nextDailyDeliveries(mondayMorning, [1, 2, 3, 4, 5, 6]);
         assertEquals(result.deliveryDate.toDateString(), 'Tue Jun 13 2017');
-        result = nextDailyDeliveries(mondayAfternoon);
+        result = nextDailyDeliveries(mondayAfternoon, [1, 2, 3, 4, 5, 6]);
         assertEquals(result.deliveryDate.toDateString(), 'Wed Jun 14 2017');
-        result = nextDailyDeliveries(fridayMorning);
+        result = nextDailyDeliveries(fridayMorning, [1, 2, 3, 4, 5, 6]);
         assertEquals(result.deliveryDate.toDateString(), 'Sat Jun 17 2017');
-        result = nextDailyDeliveries(saturdayMorning);
+        result = nextDailyDeliveries(saturdayMorning, [1, 2, 3, 4, 5, 6]);
         assertEquals(result.deliveryDate.toDateString(), 'Tue Jun 20 2017');
 
         result = nextWeeklyDelivery(mondayMorning, castlemaine);
