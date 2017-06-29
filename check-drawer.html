@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.js" defer></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" defer></script>
+<script src="dineamic-delivery-zones.js" defer></script>
 <style>
     .delivery-checker-link {
         margin: .5em;
@@ -30,34 +31,6 @@
         <div class="results"></div>
     </div>
 </div>
-<script>
-    var link = document.querySelector('a[href="#delivery-zone-checker"]');
-    var closeChecker = document.querySelector('.closeChecker');
-
-
-    // TODO combine these two functions
-    link.onclick = function() {
-        var openDrawer = document.querySelector('.open-drawer');
-        var closedDrawer = document.querySelector('.closed-drawer');
-        if (openDrawer) {
-            openDrawer.className = openDrawer.className.replace('open-drawer', 'closed-drawer');
-        }
-        if (closedDrawer) {
-            closedDrawer.className = closedDrawer.className.replace('closed-drawer', 'open-drawer');
-        }
-        return false;
-    };
-    closeChecker.onclick = function() {
-        var openDrawer = document.querySelector('.open-drawer');
-        var closedDrawer = document.querySelector('.closed-drawer');
-        if (openDrawer) {
-            openDrawer.className = openDrawer.className.replace('open-drawer', 'closed-drawer');
-        }
-        return false;
-    };
-    var checker = document.querySelector('div.delivery-zone-checker');
-    checker.className += ' closed-drawer';
-</script>
 <script id="zone-result-template" type="text/template">
     <div style="margin: 1em;">
     <h4>{ suburb } { postcode }</h4>
@@ -79,34 +52,7 @@
     </div>
 </script>
 <script>
-    (function () {
-        function storeZone(zone) {
-            store(zone, zone.postcode);
-            store(zone, zone.suburb);
-            var sub = convertQuery(zone.suburb);
-            for (var i = 4; i < sub.length; i++) {
-                store(zone, sub.substring(0, i));
-            }
-        }
-        function store(zone, query) {
-            if (!query) {
-                console.log(zone);
-                return;
-            }
-            var key = convertQuery(query);
-            if (lookup.hasOwnProperty(key)) {
-                lookup[key].push(zone);
-            } else {
-                lookup[key] = [zone];
-            }
-        }
-        function search(query) {
-            var key = convertQuery(query);
-            return lookup[key] || [];
-        }
-        function convertQuery(query) {
-            return query.replace(/ /g, '').toLowerCase();
-        }
+    window.addEventListener('DOMContentLoaded', function () {
         function render(query, results) {
             var resultsElem = document.querySelector('.results');
             resultsElem.innerHTML = '';
@@ -347,31 +293,11 @@
         function searchAndDisplay() {
             var query = queryElem.value;
             if (query && query.length > 3) {
-                var results = search(query);
+                var results = zones.search(query);
                 render(query, results);
             }
             return false;
 
-        }
-        function fillLookupTable(zones) {
-            for (var i = 0; i < zones.length; i++) {
-                storeZone(zones[i]);
-            }
-        }
-        function getJson(url, callback) {
-            var req = new XMLHttpRequest();
-            req.open('GET', url);
-            req.onreadystatechange = function () {
-                if (req.readyState === XMLHttpRequest.DONE) {
-                    if (req.status === 200) {
-                        var data = JSON.parse(req.responseText);
-                        callback(data);
-                    } else {
-                        console.log(req);
-                    }
-                }
-            };
-            req.send();
         }
         var dayNums = {
             "Sun": 0,
@@ -391,8 +317,8 @@
             "Friday",
             "Saturday"
         ];
-        var lookup = {};
-        getJson('https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366', fillLookupTable);
+        var zonesUrl = 'https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366';
+        var zones = dineamic.deliveryZones.download(zonesUrl);
         var form = document.querySelector('form.delivery-zone-checker');
         var queryElem = form.querySelector('input[name="query"]');
         form.onsubmit = searchAndDisplay;
@@ -508,5 +434,5 @@
         result = nextFortnightlyDelivery(mondayMorning, mannum);
         assertEquals(result.cutoffDate.toDateString(), 'Thu Jun 22 2017');
         assertEquals(result.deliveryDate.toDateString(), 'Sat Jul 01 2017');
-    }());
+    });
 </script>
