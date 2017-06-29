@@ -51,15 +51,18 @@ function convertSchedule(text) {
                     continue;
                 }
                 var entry = {
-                    postcode: row[1],
-                    suburb: row[2],
+                    postcode: row[0],
+                    suburb: row[1],
                     // whole business days between cutoff and delivery
-                    turn: row[6],
-//                    cutoff: row[7],
-                    deliveryDate: row[9],
-                    day: row[10],
-                    frequency: row[11]
+                    turn: row[5],
+//                    cutoff: row[6],
+                    deliveryDate: row[8],
+                    day: row[9],
+                    frequency: row[10]
                 };
+                if (!entry.turn) {
+                    continue;
+                }
 //                console.log(entry);
 //                return;
                 zones.push(entry);
