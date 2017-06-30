@@ -229,8 +229,14 @@
             return diff / 1000 / 60 / 60 / 24;
         }
         function isInFortnightlyInterval(date, referenceDate) {
-            var days = daysBetween(date, referenceDate);
+            var days = daysBetween(
+                    beginningOfWeek(date),
+                    beginningOfWeek(referenceDate)
+                    );
             return (days % 14) === 0;
+        }
+        function beginningOfWeek(date) {
+            return addDays(date, -date.getDay());
         }
         function searchAndDisplay() {
             var query = queryElem.value;
@@ -264,7 +270,8 @@
             "Fri": 5,
             "Sat": 6
         };
-        var zonesUrl = 'https://cdn.shopify.com/s/files/1/1869/3543/files/schedule.json?13697742335530475366';
+        var zonesUrl = 'https://cdn.shopify.com/s/files/1/1869/3543/t/1/assets/dineamic-delivery-schedule.json?5075027964753670403';
+//        var zonesUrl = '{{ "dineamic-delivery-schedule.json" | asset_url }}';
         var zones = dineamic.deliveryZones.download(zonesUrl, initSearch);
         var queryElem = document.querySelector('input[name="attributes[Delivery zone]"]');
         queryElem.oninput = searchAndDisplay;
